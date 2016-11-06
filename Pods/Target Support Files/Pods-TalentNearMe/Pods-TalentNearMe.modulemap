@@ -1,0 +1,6 @@
+framework module Pods_TalentNearMe {
+  umbrella header "Pods-TalentNearMe-umbrella.h"
+
+  export *
+  module * { export * }
+}
