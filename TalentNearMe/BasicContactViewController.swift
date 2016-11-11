@@ -38,6 +38,7 @@ class BasicContactViewController: UIViewController {
         super.viewDidLoad()
         
         self.uidToDisplay = Manager.messageText
+        print("UISTODISPLAY is \(self.uidToDisplay)")
         
         
         //拿 UID

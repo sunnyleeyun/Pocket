@@ -45,6 +45,8 @@ class SettingsViewController: UIViewController {
         try!FIRAuth.auth()?.signOut()
         
         
+        
+        
     }
     
     

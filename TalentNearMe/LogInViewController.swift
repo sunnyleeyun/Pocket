@@ -9,8 +9,9 @@
 import UIKit
 import Firebase
 import FirebaseAuth
+import CoreLocation
 
-class LogInViewController: UIViewController {
+class LogInViewController: UIViewController, CLLocationManagerDelegate {
 
     @IBOutlet weak var Logo_Picture: UIImageView!
     
@@ -143,6 +144,8 @@ class LogInViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
         // 使用者登出
         try!FIRAuth.auth()?.signOut()
         //Animate the logo when the app first launches.
@@ -153,6 +156,26 @@ class LogInViewController: UIViewController {
             self.Logo_Picture.alpha = 1.0
             self.Logo_Picture.transform = CGAffineTransform.init(scaleX: 1.0, y: 1.0)
         })
+        
+        
+   /*
+        var locationManager: CLLocationManager = CLLocationManager()
+        
+        // Ask for Authorisation from the User.
+        locationManager.requestAlwaysAuthorization()
+        
+        // For use in foreground
+        locationManager.requestWhenInUseAuthorization()
+        
+        
+            if CLLocationManager.locationServicesEnabled() {
+        //locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
+        }*/
         
         
         //讓目前使用者的帳號顯現
@@ -185,7 +208,7 @@ class LogInViewController: UIViewController {
 // Function to hide keyboard when touching anywhere else
 extension UIViewController {
        func hideKeyboardWhenTappedAround() {
-                let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
+                let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
                 view.addGestureRecognizer(tap)
             }
     
