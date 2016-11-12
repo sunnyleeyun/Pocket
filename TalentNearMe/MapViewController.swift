@@ -90,11 +90,49 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         return nil
     }
     
+    @IBOutlet weak var my_Location_Button: UIButton!
+    
+    var numberCounter = 0
+    @IBAction func my_Location_Button_Tapped(_ sender: UIButton) {
+        
+        numberCounter = numberCounter + 1
+        
+        if numberCounter % 2 == 0 {
+            
+            if numberCounter > 999 {
+                
+                numberCounter = 2
+                
+            }
+            
+            mapShouldBeCentered = false
+            
+            my_Location_Button.setImage(UIImage(named: "My_Location_OFF"), for: .normal)
+            
+            
+        } else if numberCounter % 2 == 1 {
+            
+            if numberCounter > 999 {
+                
+                numberCounter = 1
+                
+            }
+            
+            mapShouldBeCentered = true
+            
+            my_Location_Button.setImage(UIImage(named: "My_Location_ON"), for: .normal)
+            
+        }
+        
+    }
     
     //Decides what happens when an annotation is selected
     func mapView(_ mapView: MKMapView,
                  didSelect view: MKAnnotationView)
     {
+        Contact_Info_Tab_Name.isHidden = false
+        Contact_Info_Tab_Job.isHidden = false
+        
         
         //Subtitle was stored like this: "Job_Title, UID"
         if let Subtitle_And_UID_To_Be_Parsed = (view.annotation?.subtitle)! {
@@ -190,7 +228,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     
     var myCurrentLatitude = CLLocationDegrees()
     var myCurrentLongitude = CLLocationDegrees()
-    var spanCount = 0 //Makes sure to only set the default zoom level once
+    var mapShouldBeCentered = false
+    var spanCount = 0 //To initially set the zoom level when map is first loaded
     
     //Decides what to do when location has been updated
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -203,17 +242,16 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         keepUploadingMyLocation()
         
-        if spanCount == 0 { //then set the default zoom level (only once)
+        if mapShouldBeCentered == true || spanCount == 0 {
+            
+            spanCount = 1
             
             //設定預設地圖大小
-            let span = MKCoordinateSpanMake(0.075, 0.075)
+            let span = MKCoordinateSpanMake(0.005, 0.005)
             
             let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: myCurrentLatitude, longitude: myCurrentLongitude), span: span)
             myMap.setRegion(region, animated: true)
             
-            
-            
-   // ********* stop centeringSSS
             
             //var timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(MapViewController.keepUploadingMyLocation), userInfo: nil, repeats: true)
             
@@ -222,7 +260,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             
         }
         
-        spanCount = 1
         
     }
     
@@ -348,7 +385,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             
         })
         
-        myMap.showAnnotations(myMap.annotations, animated: true)
         myMap.delegate = self
         
         
@@ -360,21 +396,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
 
-        
-        locationManager = CLLocationManager()
-        
-        // Ask for Authorisation from the User.
-        self.locationManager.requestAlwaysAuthorization()
-        
-        // For use in foreground
-        self.locationManager.requestWhenInUseAuthorization()
-        
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-
-        
+        Contact_Info_Tab_Name.isHidden = true
+        Contact_Info_Tab_Job.isHidden = true
         
         //拿 UID
         if let user = FIRAuth.auth()?.currentUser {
@@ -388,6 +411,19 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         }
         
         
+        // Start processing user's location
+        locationManager = CLLocationManager()
+        
+        // Ask for Authorisation from the User.
+        self.locationManager.requestAlwaysAuthorization()
+        
+        // For use in foreground
+        self.locationManager.requestWhenInUseAuthorization()
+        
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
     }
     
     
