@@ -152,7 +152,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             Contact_Info_Tab_Name.text = name
         }
         
-        Contact_Info_Tab_Picture.image = UIImage(named: "Man_1")
+        Contact_Info_Tab_Picture.image = UIImage(named: "Kenny")
         
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.OpenBusinessCard(_:)))
@@ -255,8 +255,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             
             //var timer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(MapViewController.keepUploadingMyLocation), userInfo: nil, repeats: true)
             
-            //Start fetching friends' location periodically (without ever stopping)
-            var timer2 = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(MapViewController.keepFetchingFriendsLocation), userInfo: nil, repeats: true)
+            
             
         }
         
@@ -276,7 +275,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         } else {
             // No user is signed in.
         }
-        
+        //
         //Start updating my latitude to Firebase
         ref = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/Current-Location/Latitude")
         
@@ -317,6 +316,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         self.myMap.removeAnnotations(annotations_Array)
         
+        annotations_Array.removeAll()
         
         //Iterate through every user in Firebase Database to see which friend is online, and if so, pin that person using annotation
         FIRDatabase.database().reference().child("Online-Status").observe(.value, with: { snapshot in
@@ -424,6 +424,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
+        
+        
+        
+        //Start fetching friends' location periodically (without ever stopping)
+        var timer2 = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(MapViewController.keepFetchingFriendsLocation), userInfo: nil, repeats: true)
     }
     
     
