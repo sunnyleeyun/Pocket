@@ -17,32 +17,70 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var clientTable: UITableView!
     @IBOutlet weak var sendButton: UIButton!
-    /*
-    @IBAction func sendButton(_ sender: Any) {
-        
-        textFieldShouldReturn(textField)
-        
-    }
- */
-    var messageNumber = 1
+    @IBOutlet weak var chatName: UINavigationItem!
     
     //Initialization for Firebase database
     var ref: FIRDatabaseReference!
-    
     var messages: [FIRDataSnapshot]! = []
-    var msglength: NSNumber = 10
+    var msglength: NSNumber = 100
     fileprivate var _refHandle: FIRDatabaseHandle!
-    
     var storageRef: FIRStorageReference!
-    
     var remoteConfig: FIRRemoteConfig!
     
-    var cur = 0
+    
+    var uid: String?
+    var name: String?
+    var myName: String?
+
+
   
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        //設立tab bar item's title
+        self.uidToDisplay = Manager.messageText
+        let ref = FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/Real-Name")
+        ref.observe(.value, with: { (snapshot) in
+            if let secureName = (snapshot.value){
+                self.name = (secureName as! String)
+                print("name is \(self.name)")
+                self.chatName.title = self.name!
+            }
+        })
+        
+        
+        //拿 UID
+        if let user = FIRAuth.auth()?.currentUser {
+            
+            uid = user.uid  // The user's ID, unique to the Firebase project.
+            // Do NOT use this value to authenticate with
+            // your backend server, if you have one. Use
+            // getTokenWithCompletion:completion: instead.
+        } else {
+            // No user is signed in.
+        }
+        
+        //確認我的uid名字 Real-Name
+        let reff = FIRDatabase.database().reference(withPath: "ID/\(uid)/Profile/Real-Name")
+        reff.observe(.value, with: { (snapshot) in
+            if let secureName = (snapshot.value){
+                self.myName = (secureName as! String)
+                print("my name is \(self.myName)")
+            }
+        })
+        
+        self.clientTable.register(UITableViewCell.self, forCellReuseIdentifier: "tableViewCell")
+        
+        //Retrieve data from Firebase database
+        // ref = FIRDatabase.database().reference(withPath: "Message/Chat")
+        
+        configureDatabase()
+        configureStorage()
+        
+    }
+
     
     
-    @IBOutlet weak var textLabel: UILabel!
-    //var mickey = "Donald"
     
     func fetchConfig() {
         var expirationDuration: Double = 3600
@@ -74,28 +112,7 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     func configureStorage() {
         storageRef = FIRStorage.storage().reference(forURL: "gs://github-zebra.appspot.com")
     }
-    /*
-     @IBAction func sendMessage(_ sender: AnyObject) {
-     
-     messageA.text = textField.text
-     
-     //Write data to Firebase database
-     self.ref = FIRDatabase.database().reference(withPath:       "Message/Chat")
-     self.ref.setValue(textField.text)
-     
-     
-     messageA.text = textField.text
-     
-     // textMessage.text =
-     cur = Int(textLabel.text!)!;
-     self.textLabel.text = String(cur + 1);
-     
-     
-     // print("cur"是：\(textLabel)")
-     
-     mutipleLab()
-     }
-     */
+    
     // UITextViewDelegate protocol methods
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         guard let text = textField.text else { return true }
@@ -107,12 +124,14 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messages.count
     }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Dequeue cell
+        
         let cell = self.clientTable.dequeueReusableCell(withIdentifier: "tableViewCell", for: indexPath)
         // Unpack message from Firebase DataSnapshot
         let messageSnapshot: FIRDataSnapshot! = self.messages[indexPath.row]
         let message = messageSnapshot.value as! Dictionary<String, String>
+        
         // let name = message[Constants.MessageFields.name] as String!
         if let imageURL = message[Constants.MessageFields.imageURL] {
             if imageURL.hasPrefix("gs://github-zebra.appspot.com") {
@@ -129,8 +148,15 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
             //cell.textLabel?.text = "sent by: \(name)"
         } else {
             let text = message[Constants.MessageFields.text] as String!
-            // cell.textLabel?.text = name! + ": " + text!
-            cell.textLabel?.text = text!
+            let ref = FIRDatabase.database().reference(withPath: "ID/\(uid)/Profile/Real-Name")
+            ref.observe(.value, with: { (snapshot) in
+                if let secureName = (snapshot.value){
+                    self.name = (secureName as! String)
+                    print("name is \(self.name)")
+                    cell.textLabel?.text = self.name! + ": " + text!
+                }
+            })
+            //cell.textLabel?.text = text!
             cell.imageView?.image = UIImage(named: "ic_account_circle")
             if let photoURL = message[Constants.MessageFields.photoURL], let URL = URL(string: photoURL), let data = try? Data(contentsOf: URL) {
                 cell.imageView?.image = UIImage(data: data)
@@ -143,18 +169,7 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         textFieldShouldReturn(textField)
         
     }
-    func mutipleLab(){
-        
-        
-        let h = 38
-        
-        let anotherLabel = UILabel(frame: CGRect(x: 150, y: 72+h*cur, width: 200, height: 50))
-        anotherLabel.font = UIFont(name: "Arial", size: 17)
-        anotherLabel.textColor = UIColor.magenta
-        anotherLabel.text = textField.text
-        view.addSubview(anotherLabel)
-        
-    }
+    
     
     func configureDatabase() {
         ref = FIRDatabase.database().reference()
@@ -171,34 +186,13 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         if let photoURL = AppState.sharedInstance.photoURL {
             mdata[Constants.MessageFields.photoURL] = photoURL.absoluteString
         }
+        
         // Push data to Firebase Database
         self.ref.child("Message/Chat").childByAutoId().setValue(mdata)
-        //self.ref = FIRDatabase.database().reference(withPath:       "Message/Chat")
-        //self.ref.setValue(mdata)
-    }
-    
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        //textLabel.text = mickey
-        self.clientTable.register(UITableViewCell.self, forCellReuseIdentifier: "tableViewCell")
-        
-        //Retrieve data from Firebase database
-        // ref = FIRDatabase.database().reference(withPath: "Message/Chat")
-        
-        configureDatabase()
-        configureStorage()
-        
-        //        ref.observe(.value, with: { snapshot in (self.messageB.text = snapshot.value as! String)
-        //        })
-        
-        
-        
-        //ref.observe(.value, with: { snapshot in (self.messageB.text = snapshot.value as! String)
-        //})
-        
         
     }
+    
+    var uidToDisplay = ""
     
     deinit {
         self.ref.child("Message/Chat").removeObserver(withHandle: _refHandle)
@@ -216,37 +210,6 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func showPopUp(_ sender: AnyObject) {
-        
-        let popOverVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "BusinessCardPopUpID") as! BasicContactViewController
-        
-        self.addChildViewController(popOverVC)
-        
-        popOverVC.view.frame = self.view.frame
-        self.view.addSubview(popOverVC.view)
-        popOverVC.didMove(toParentViewController: self)
-        
-    }
-    
-    func showAlert(withTitle title:String, message:String) {
-        DispatchQueue.main.async {
-            let alert = UIAlertController(title: title,
-                                          message: message, preferredStyle: .alert)
-            let dismissAction = UIAlertAction(title: "Dismiss", style: .destructive, handler: nil)
-            alert.addAction(dismissAction)
-            self.present(alert, animated: true, completion: nil)
-        }
-    }
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
     
 }
 

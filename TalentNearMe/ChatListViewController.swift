@@ -7,17 +7,45 @@
 //
 
 import UIKit
+import FirebaseDatabase
+import Firebase
+import FirebaseAuth
 
 class ChatListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     @IBOutlet weak var tableView: UITableView!
     var avengers = ["Thor", "Hulk", "Iron Man", "captain US", "hot girl"]
     
+    var uid = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
+        
+        //拿 UID
+        if let user = FIRAuth.auth()?.currentUser {
+            
+            uid = user.uid  // The user's ID, unique to the Firebase project.
+            // Do NOT use this value to authenticate with
+            // your backend server, if you have one. Use
+            // getTokenWithCompletion:completion: instead.
+        } else {
+            // No user is signed in.
+        }
+        
+        //找profile裡面的chatlist
+        let ref = FIRDatabase.database().reference(withPath: "ID/\(uid)/Profile/ChatList")
+        ref.observe(.value, with: { (snapshot) in
+            if let secureName = (snapshot.value){
+                //self.myName = (secureName as! String)
+                //print("my name is \(self.myName)")
+            }
+        })
+        
+        //聊天過的人's NAME [String] -> 亂數
+        
+        
     }
     
     override func didReceiveMemoryWarning() {

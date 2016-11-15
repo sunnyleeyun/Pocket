@@ -10,8 +10,8 @@ import UIKit
 
 class JobCategoriesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource  {
     
-    var jobCategory = ["批發","大眾","文教","電子"]
-
+    var jobCategory = ["批發","大眾","文教","電子","資訊","法律","學生","其他"]
+    
     @IBOutlet weak var tableView: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()

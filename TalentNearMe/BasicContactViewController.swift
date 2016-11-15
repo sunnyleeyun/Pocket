@@ -22,11 +22,51 @@ class BasicContactViewController: UIViewController {
     
     @IBAction func BasicContact_SeeMore_Button_Tapped(_ sender: AnyObject) {
         
-        
     }
     
+    
+    var chatListPeople = 0
+
     @IBAction func BasicContact_StartChatting_Button_Tapped(_ sender: UIButton) {
         
+        //Iterate through every user's chatlist in database
+        FIRDatabase.database().reference().child("ID/\(self.uid)/Profile/ChatList/\(self.chatListPeople)").observe(.value, with: { (snapshot) in
+            
+            if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot]{
+                
+                for child in snapshots{
+                    //好友代碼
+                    let chatMember = child.value as! String
+                    
+                }
+            }
+            
+        })
+        
+        /*
+        let reff = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(chatListPeople)")
+        reff.observe(.value, with: { (snapshot) in
+            if let chatPerson = (snapshot.value){
+                self.chatListPeople += 0
+                //self.name = (secureName as! String)
+                //print("name is \(self.name)")
+                //self.chatName.title = self.name!
+            }else{
+                self.chatListPeople += 1
+            }
+            print("which is\(self.chatListPeople)")
+        })
+        */
+        
+        var ref = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(chatListPeople)")
+        //setvalue放到firebase
+        ref.setValue(self.uidToDisplay, withCompletionBlock:
+            {(Error, FIRDatabaseReference) -> Void in
+                print("CAN'T UPLOAD, Error: \(Error)")
+                
+        })
+        
+
         
     }
     var uid = ""
