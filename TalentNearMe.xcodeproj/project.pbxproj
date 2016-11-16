@@ -164,7 +164,7 @@
 				TargetAttributes = {
 					D4E236071DB9A798008F515D = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = UP8PG5RXV7;
+						DevelopmentTeam = VJGEDW5SA9;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -390,11 +390,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = UP8PG5RXV7;
+				DEVELOPMENT_TEAM = VJGEDW5SA9;
 				INFOPLIST_FILE = TalentNearMe/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "-2d15e1a-cdbb-4bd8-b783-74b92cdb0601.iOSTeamProvisioningProfilef7ff148c-d2e2-46ae-8cb8-43edaca404ee.mobileprovision";
+				PRODUCT_BUNDLE_IDENTIFIER = www.sunnyleeyun.com;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -407,11 +407,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = UP8PG5RXV7;
+				DEVELOPMENT_TEAM = VJGEDW5SA9;
 				INFOPLIST_FILE = TalentNearMe/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "-2d15e1a-cdbb-4bd8-b783-74b92cdb0601.iOSTeamProvisioningProfilef7ff148c-d2e2-46ae-8cb8-43edaca404ee.mobileprovision";
+				PRODUCT_BUNDLE_IDENTIFIER = www.sunnyleeyun.com;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

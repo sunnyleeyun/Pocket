@@ -30,7 +30,7 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     
     var uid: String?
     var name: String?
-    var myName: String?
+    var myName: String = ""
 
 
   
@@ -60,14 +60,20 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
             // No user is signed in.
         }
         
+        
+        
+        /*
         //確認我的uid名字 Real-Name
-        let reff = FIRDatabase.database().reference(withPath: "ID/\(uid)/Profile/Real-Name")
+        let reff = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/Real-Name")
+        print("selfuid is \(self.uid)")
         reff.observe(.value, with: { (snapshot) in
             if let secureName = (snapshot.value){
-                self.myName = (secureName as! String)
+                self.myName = secureName as! String
                 print("my name is \(self.myName)")
             }
         })
+        */
+        
         
         self.clientTable.register(UITableViewCell.self, forCellReuseIdentifier: "tableViewCell")
         
@@ -174,7 +180,7 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     func configureDatabase() {
         ref = FIRDatabase.database().reference()
         // Listen for new messages in the Firebase database
-        _refHandle = self.ref.child("Message/Chat").observe(.childAdded, with: { [weak self] (snapshot) -> Void in
+        _refHandle = self.ref.child("Message/Chat/\(self.uid)").observe(.childAdded, with: { [weak self] (snapshot) -> Void in
             guard let strongSelf = self else { return }
             strongSelf.messages.append(snapshot)
             strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
@@ -188,14 +194,14 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         }
         
         // Push data to Firebase Database
-        self.ref.child("Message/Chat").childByAutoId().setValue(mdata)
+        self.ref.child("Message/Chat/\(self.uid)").childByAutoId().setValue(mdata)
         
     }
     
     var uidToDisplay = ""
     
     deinit {
-        self.ref.child("Message/Chat").removeObserver(withHandle: _refHandle)
+        self.ref.child("Message/Chat/\(self.uid)").removeObserver(withHandle: _refHandle)
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {

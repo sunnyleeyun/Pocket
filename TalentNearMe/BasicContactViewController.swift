@@ -25,18 +25,60 @@ class BasicContactViewController: UIViewController {
     }
     
     
-    var chatListPeople = 0
-
+    var chatListPeople = ""
+    var IntChatListPeople: Int = 0
+    var chatListAccount = ""
+    
     @IBAction func BasicContact_StartChatting_Button_Tapped(_ sender: UIButton) {
         
         //Iterate through every user's chatlist in database
-        FIRDatabase.database().reference().child("ID/\(self.uid)/Profile/ChatList/\(self.chatListPeople)").observe(.value, with: { (snapshot) in
+        FIRDatabase.database().reference().child("ID/\(self.uid)/Profile/ChatList").observe(.value, with: { (snapshot) in
             
             if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot]{
                 
                 for child in snapshots{
-                    //好友代碼
-                    let chatMember = child.value as! String
+                    
+                    //好友代號0, 1, 2, ...
+                    self.chatListPeople = child.key as! String
+                    print("chatListPeople is \(self.chatListPeople)")
+                    
+                    //好友uid
+                    self.chatListAccount = child.value as! String
+                    print("chatListAccount is \(self.chatListAccount)")
+                    
+                    //如果chatListAccount不存在，
+                    //  chatListPeople + 1，
+                    //  childListAccount -> uidToDisplay
+                    //  跳到chatRoom V.C.
+                    //  Add: Message/Chat/self.uid/chatListAccount
+                    //如果chatListAccount已經存在，
+                    //  chatListPeople + 0，
+                    //  chatListAccount -> uidToDisplay
+                    //  跳到chatRoom V.C.
+                    //  Existed: Message/Chat/self.uid/chatListAccount
+                    
+                    if self.chatListAccount != self.uidToDisplay{
+                        
+                        self.IntChatListPeople = Int(self.chatListPeople)!
+                        self.IntChatListPeople += 1
+                        print("Integer of ChatListPeople is \(self.IntChatListPeople)")
+                        
+                        FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(self.chatListPeople)").setValue(self.chatListAccount, withCompletionBlock: { (Error, FIRDatabaseReference) in
+                            if Error != nil {
+                                print("CAN'T UPLOAD, Error: \(Error)")
+                            }
+                        })
+                        print("doinioininini")
+                        FIRDatabase.database().reference(withPath: "Message/Chat/\(self.uid)").setValue(self.chatListAccount, withCompletionBlock: { (Error, FIRDatabaseReference) in
+                            if Error != nil {
+                                print("CAN'T UPLOAD, Error: \(Error)")
+                            }
+                        })
+                        
+                        self.chatListPeople = String(self.IntChatListPeople)
+                        
+                    }
+                    
                     
                 }
             }
@@ -58,6 +100,7 @@ class BasicContactViewController: UIViewController {
         })
         */
         
+        /*
         var ref = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(chatListPeople)")
         //setvalue放到firebase
         ref.setValue(self.uidToDisplay, withCompletionBlock:
@@ -65,7 +108,7 @@ class BasicContactViewController: UIViewController {
                 print("CAN'T UPLOAD, Error: \(Error)")
                 
         })
-        
+        */
 
         
     }
