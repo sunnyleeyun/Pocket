@@ -28,10 +28,12 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     var remoteConfig: FIRRemoteConfig!
     
     
-    var uid: String?
+    var uid: String = ""
+    var uidToDisplay = ""
     var name: String?
-    var myName: String = ""
-
+    var myName: String?
+    
+    var tabBarName: String?
 
   
     override func viewDidLoad() {
@@ -41,12 +43,14 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         self.uidToDisplay = Manager.messageText
         let ref = FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/Real-Name")
         ref.observe(.value, with: { (snapshot) in
-            if let secureName = (snapshot.value){
-                self.name = (secureName as! String)
-                print("name is \(self.name)")
-                self.chatName.title = self.name!
+            if let NameTab = (snapshot.value){
+                self.tabBarName = (NameTab as! String)
+                print("TabBarName is \(self.tabBarName)")
+                self.chatName.title = self.tabBarName!
             }
         })
+        
+        
         
         
         //拿 UID
@@ -60,19 +64,16 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
             // No user is signed in.
         }
         
-        
-        
-        /*
         //確認我的uid名字 Real-Name
         let reff = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/Real-Name")
         print("selfuid is \(self.uid)")
         reff.observe(.value, with: { (snapshot) in
-            if let secureName = (snapshot.value){
-                self.myName = secureName as! String
+            if let safeName = (snapshot.value){
+                self.myName = safeName as? String
                 print("my name is \(self.myName)")
             }
         })
-        */
+        
         
         
         self.clientTable.register(UITableViewCell.self, forCellReuseIdentifier: "tableViewCell")
@@ -81,43 +82,9 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
         // ref = FIRDatabase.database().reference(withPath: "Message/Chat")
         
         configureDatabase()
-        configureStorage()
-        
     }
 
     
-    
-    
-    func fetchConfig() {
-        var expirationDuration: Double = 3600
-        // If in developer mode cacheExpiration is set to 0 so each fetch will retrieve values from
-        // the server.
-        if (self.remoteConfig.configSettings.isDeveloperModeEnabled) {
-            expirationDuration = 0
-        }
-        
-        // cacheExpirationSeconds is set to cacheExpiration here, indicating that any previously
-        // fetched and cached config would be considered expired because it would have been fetched
-        // more than cacheExpiration seconds ago. Thus the next fetch would go to the server unless
-        // throttling is in progress. The default expiration duration is 43200 (12 hours).
-        remoteConfig.fetch(withExpirationDuration: expirationDuration) { (status, error) in
-            if (status == .success) {
-                print("Config fetched!")
-                self.remoteConfig.activateFetched()
-                let friendlyMsgLength = self.remoteConfig["friendly_msg_length"]
-                if (friendlyMsgLength.source != .static) {
-                    self.msglength = friendlyMsgLength.numberValue!
-                    print("Friendly msg length config: \(self.msglength)")
-                }
-            } else {
-                print("Config not fetched")
-                print("Error \(error)")
-            }
-        }
-    }
-    func configureStorage() {
-        storageRef = FIRStorage.storage().reference(forURL: "gs://github-zebra.appspot.com")
-    }
     
     // UITextViewDelegate protocol methods
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -133,41 +100,61 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        //拿 UID
+        if let user = FIRAuth.auth()?.currentUser {
+            
+            uid = user.uid  // The user's ID, unique to the Firebase project.
+            // Do NOT use this value to authenticate with
+            // your backend server, if you have one. Use
+            // getTokenWithCompletion:completion: instead.
+        } else {
+            // No user is signed in.
+        }
+
+        
         let cell = self.clientTable.dequeueReusableCell(withIdentifier: "tableViewCell", for: indexPath)
+        
         // Unpack message from Firebase DataSnapshot
         let messageSnapshot: FIRDataSnapshot! = self.messages[indexPath.row]
         let message = messageSnapshot.value as! Dictionary<String, String>
         
         // let name = message[Constants.MessageFields.name] as String!
-        if let imageURL = message[Constants.MessageFields.imageURL] {
-            if imageURL.hasPrefix("gs://github-zebra.appspot.com") {
-                FIRStorage.storage().reference(forURL: imageURL).data(withMaxSize: INT64_MAX){ (data, error) in
-                    if let error = error {
-                        print("Error downloading: \(error)")
-                        return
-                    }
-                    cell.imageView?.image = UIImage.init(data: data!)
-                }
-            } else if let URL = URL(string: imageURL), let data = try? Data(contentsOf: URL) {
-                cell.imageView?.image = UIImage.init(data: data)
-            }
-            //cell.textLabel?.text = "sent by: \(name)"
-        } else {
+        
             let text = message[Constants.MessageFields.text] as String!
-            let ref = FIRDatabase.database().reference(withPath: "ID/\(uid)/Profile/Real-Name")
+
+            var reff = FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/Real-Name")
+            reff.observe(.value, with: { (snapshot) in
+                if let secureName = (snapshot.value){
+                    
+                    //FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(self.uidToDisplay)").setValue(secureName)
+                    
+                    //FIRDatabase.database().reference(withPath: "Message/Chat/\(self.uid)/\(secureName)").setValue("")
+                    self.name = (secureName as! String)
+                    cell.textLabel?.text = self.name! + ": " + text!
+
+                }
+            })
+            
+            /*//
+            let ref = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/Real-Name")
+            
             ref.observe(.value, with: { (snapshot) in
                 if let secureName = (snapshot.value){
+                    print("uid is \(self.uid)")
                     self.name = (secureName as! String)
                     print("name is \(self.name)")
                     cell.textLabel?.text = self.name! + ": " + text!
                 }
             })
+             */
+            
             //cell.textLabel?.text = text!
+            
             cell.imageView?.image = UIImage(named: "ic_account_circle")
             if let photoURL = message[Constants.MessageFields.photoURL], let URL = URL(string: photoURL), let data = try? Data(contentsOf: URL) {
                 cell.imageView?.image = UIImage(data: data)
             }
-        }
+        
         return cell
     }
     
@@ -186,19 +173,29 @@ class ChatRoomViewController: UIViewController, UITableViewDataSource, UITableVi
             strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
         })
     }
+    
     func sendMessage(withData data: [String: String]) {
-        var mdata = data
-        mdata[Constants.MessageFields.name] = AppState.sharedInstance.displayName
-        if let photoURL = AppState.sharedInstance.photoURL {
-            mdata[Constants.MessageFields.photoURL] = photoURL.absoluteString
-        }
+        
+        //(Message/Chat/self.uid/uidToDisplay/Auto/-name: -text:
+
+        var ref = FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/Real-Name")
+        ref.observe(.value, with: { (snapshot) in
+            if let secureName1 = (snapshot.value){
+                var mdata = data
+                mdata[Constants.MessageFields.name] = secureName1
+            }
+        })
+        
+        //var mdata = data
+        //mdata[Constants.MessageFields.name] = AppState.sharedInstance.displayName
+        
         
         // Push data to Firebase Database
+        
         self.ref.child("Message/Chat/\(self.uid)").childByAutoId().setValue(mdata)
         
     }
     
-    var uidToDisplay = ""
     
     deinit {
         self.ref.child("Message/Chat/\(self.uid)").removeObserver(withHandle: _refHandle)

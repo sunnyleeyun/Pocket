@@ -28,6 +28,8 @@ class BasicContactViewController: UIViewController {
     var chatListPeople = ""
     var IntChatListPeople: Int = 0
     var chatListAccount = ""
+    var ArrayChatListAccount: [AnyObject?] = []
+    var accountName = ""
     
     @IBAction func BasicContact_StartChatting_Button_Tapped(_ sender: UIButton) {
         
@@ -38,14 +40,20 @@ class BasicContactViewController: UIViewController {
                 
                 for child in snapshots{
                     
-                    //好友代號0, 1, 2, ...
-                    self.chatListPeople = child.key as! String
-                    print("chatListPeople is \(self.chatListPeople)")
+                    //好友uid
+                    self.chatListAccount = child.key
+                    print("chatListPeople is \(self.chatListAccount)")
                     
                     //好友uid
-                    self.chatListAccount = child.value as! String
-                    print("chatListAccount is \(self.chatListAccount)")
+                    self.accountName = child.value as! String
+                    print("chatListAccount is \(self.accountName)")
                     
+                    
+                    //self.ArrayChatListAccount.append(self.chatListAccount as AnyObject!)
+                    //print("array is \(self.ArrayChatListAccount)")
+                    
+                    
+                    print("snapshots is \(snapshots)")
                     //如果chatListAccount不存在，
                     //  chatListPeople + 1，
                     //  childListAccount -> uidToDisplay
@@ -59,27 +67,62 @@ class BasicContactViewController: UIViewController {
                     
                     if self.chatListAccount != self.uidToDisplay{
                         
-                        self.IntChatListPeople = Int(self.chatListPeople)!
-                        self.IntChatListPeople += 1
-                        print("Integer of ChatListPeople is \(self.IntChatListPeople)")
                         
-                        FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(self.chatListPeople)").setValue(self.chatListAccount, withCompletionBlock: { (Error, FIRDatabaseReference) in
+                        
+                        
+                        //self.IntChatListPeople = Int(self.chatListPeople)!
+                        //self.IntChatListPeople += 1
+                        //print("Integer of ChatListPeople is \(self.IntChatListPeople)")
+                        
+                        //self.chatListPeople = String(self.IntChatListPeople)
+                        
+                        var ref = FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/Real-Name")
+                        ref.observe(.value, with: { (snapshot) in
+                            if let secureName1 = (snapshot.value){
+                                
+                                //self.uid add "ChatList"
+                                FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(self.uidToDisplay)").setValue(secureName1)
+                                
+                                //uidToDisplay add "ChatList"
+                                var reff = FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/Real-Name")
+                                reff.observe(.value, with: { (snapshot) in
+                                    if let secureName2 = (snapshot.value){
+                                        
+                                        
+                                        FIRDatabase.database().reference(withPath: "ID/\(self.uidToDisplay)/Profile/ChatList/\(self.uid)").setValue(secureName2)
+                                        
+                                    }
+                                })
+                                
+                                /*
+                                //(Message/Chat/self.uid/uidToDisplay/Auto/-name: -text:
+                                var mdata = data
+                                mdata[Constants.MessageFields.name] = secureName1
+
+                                FIRDatabase.database().reference(withPath: "Message/Chat/\(self.uid)/\(self.uidToDisplay)").childByAutoId().setValue(mdata)
+                                    //.setValue("Hello I am \(self.uid)")
+                                */
+                                
+                            }
+                        })
+                        
+
+                        
+                        /*FIRDatabase.database().reference(withPath: "ID/\(self.uid)/Profile/ChatList/\(self.uidToDisplay)").setValue(self.uidToDisplay, withCompletionBlock: { (Error, FIRDatabaseReference) in
                             if Error != nil {
                                 print("CAN'T UPLOAD, Error: \(Error)")
                             }
                         })
-                        print("doinioininini")
-                        FIRDatabase.database().reference(withPath: "Message/Chat/\(self.uid)").setValue(self.chatListAccount, withCompletionBlock: { (Error, FIRDatabaseReference) in
+                        FIRDatabase.database().reference(withPath: "Message/Chat/\(self.uid)").setValue(self.uidToDisplay, withCompletionBlock: { (Error, FIRDatabaseReference) in
                             if Error != nil {
                                 print("CAN'T UPLOAD, Error: \(Error)")
                             }
-                        })
+                        })*/
                         
-                        self.chatListPeople = String(self.IntChatListPeople)
+                        
+                    }else if self.chatListAccount == self.uidToDisplay{
                         
                     }
-                    
-                    
                 }
             }
             
