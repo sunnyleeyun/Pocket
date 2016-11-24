@@ -17,3 +17,17 @@
 
 
     }
+
+
+struct Constants {
+    
+    struct MessageFields {
+        static let name = "name"
+        static let text = "text"
+        static let imageURL = "imageURL"
+    }
+    
+    struct childByAuto{
+        static var messengerName = String()
+    }
+}
